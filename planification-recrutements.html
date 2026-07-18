@@ -20,6 +20,9 @@
   .niveau-box { border:2px solid #e5e7eb; border-radius:10px; padding:10px; background:#f9fafb; }
   .niveau-box.actif { border-color:#818cf8; background:#eef2ff; }
   .niveau-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; font-weight:600; }
+  .matieres-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-top:16px; }
+  .matiere-box { border:2px solid #e5e7eb; border-radius:10px; padding:10px; background:#f9fafb; }
+  .matiere-box .mnom { font-size:13px; font-weight:600; margin-bottom:8px; display:block; }
   .btn { background:#4f46e5; color:#fff; border:none; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
   .btn:hover { background:#4338ca; }
   .btn-secondary { background:#059669; }
@@ -38,6 +41,8 @@
   .charge-line { display:flex; justify-content:space-between; padding:12px 16px; border-radius:8px; margin-bottom:10px; font-size:14px; }
   .flex-between { display:flex; justify-content:space-between; align-items:center; }
   .hidden { display:none; }
+  .badge-ok { color:#059669; font-weight:700; }
+  .badge-recruit { color:#d97706; font-weight:700; }
   @media print { body { background:#fff; padding:0; } .btn { display:none; } }
 </style>
 </head>
@@ -70,6 +75,12 @@
     <div class="niveaux-grid" id="niveauxGrid"></div>
   </div>
 
+  <div class="card">
+    <h2>👥 Enseignants déjà disponibles par matière</h2>
+    <p class="subtitle" style="margin-bottom:8px;">Indiquez le nombre d'enseignants actuellement en poste pour chaque matière. L'outil calculera l'écart réel à recruter.</p>
+    <div class="matieres-grid" id="matieresGrid"></div>
+  </div>
+
   <div class="center">
     <button class="btn" onclick="calculerBesoins()">🧮 Calculer les besoins en personnel</button>
   </div>
@@ -91,7 +102,7 @@
           <thead>
             <tr>
               <th>Matière</th><th>Total heures</th><th>1er cycle</th><th>2nd cycle</th>
-              <th>Charge/ens.</th><th>Enseignants</th><th>Heures reste</th><th>HS 1er</th><th>HS 2nd</th>
+              <th>Charge/ens.</th><th>Besoin</th><th>Disponibles</th><th>À recruter</th><th>HS 1er</th><th>HS 2nd</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -101,7 +112,7 @@
     </div>
 
     <div class="card">
-      <h2>💵 Détail des charges annuelles (9 mois)</h2>
+      <h2>💵 Détail des charges annuelles (9 mois) — postes à recruter uniquement</h2>
       <div id="chargesDetail"></div>
     </div>
 
@@ -134,35 +145,35 @@ const cycles = {
 };
 
 const matieres = [
-  { nom:'Français', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
+  { nom:'Français', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':5,'5ème':5,'4ème':5,'3ème':5,'2nde A':4,'2nde C':4,'1ère A1':4,'1ère A2':4,'1ère C':3,'1ère D':3,'Tle A1':5,'Tle A2':5,'Tle C':2,'Tle D':2} },
-  { nom:'Mathématiques', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
+  { nom:'Mathématiques', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':4,'5ème':4,'4ème':4,'3ème':4,'2nde A':3,'2nde C':5,'1ère A1':3,'1ère A2':3,'1ère C':5,'1ère D':5,'Tle A1':4,'Tle A2':4,'Tle C':7,'Tle D':6} },
-  { nom:'Anglais', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Anglais', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':3,'5ème':3,'4ème':3,'3ème':3,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':2,'1ère D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
-  { nom:'Espagnol (LV2)', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Espagnol (LV2)', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':0,'5ème':0,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
-  { nom:'Arabe', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Arabe', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
-  { nom:'Histoire-Géographie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Histoire-Géographie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':3,'5ème':3,'4ème':3,'3ème':3,'2nde A':3,'2nde C':3,'1ère A1':4,'1ère A2':4,'1ère C':0,'1ère D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} },
-  { nom:'Philosophie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Philosophie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':0,'5ème':0,'4ème':0,'3ème':0,'2nde A':0,'2nde C':0,'1ère A1':3,'1ère A2':3,'1ère C':2,'1ère D':2,'Tle A1':4,'Tle A2':4,'Tle C':2,'Tle D':2} },
-  { nom:'EDHC', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'EDHC', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
-  { nom:'Physique-Chimie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Physique-Chimie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':0,'5ème':0,'4ème':2,'3ème':2,'2nde A':0,'2nde C':3,'1ère A1':0,'1ère A2':0,'1ère C':5,'1ère D':4,'Tle A1':0,'Tle A2':0,'Tle C':6,'Tle D':5} },
-  { nom:'SVT', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'SVT', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':0,'2nde C':2,'1ère A1':0,'1ère A2':0,'1ère C':3,'1ère D':4,'Tle A1':0,'Tle A2':0,'Tle C':3,'Tle D':5} },
-  { nom:'EPS', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'EPS', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':2,'1ère D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
-  { nom:'Arts Visuels', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Arts Visuels', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
-  { nom:'TICE', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'TICE', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
-  { nom:'Mémorisation', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'Mémorisation', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
-  { nom:'EFR', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+  { nom:'EFR', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18, disponible:0,
     vhh:{'6ème':4,'5ème':4,'4ème':4,'3ème':4,'2nde A':4,'2nde C':4,'1ère A1':4,'1ère A2':4,'1ère C':0,'1ère D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} }
 ];
 
@@ -196,6 +207,22 @@ function renderNiveaux() {
 function toggleNiveau(i) { niveaux[i].actif = !niveaux[i].actif; renderNiveaux(); }
 function updateClasses(i, v) { niveaux[i].nbClasses = parseInt(v) || 0; }
 
+// ---------- RENDU MATIÈRES (disponibilités) ----------
+function renderMatieres() {
+  const grid = document.getElementById('matieresGrid');
+  grid.innerHTML = '';
+  matieres.forEach((m, i) => {
+    const box = document.createElement('div');
+    box.className = 'matiere-box';
+    box.innerHTML = `
+      <span class="mnom">${m.nom}</span>
+      <input type="number" min="0" value="${m.disponible}" onchange="updateDisponible(${i}, this.value)" placeholder="Disponibles">
+    `;
+    grid.appendChild(box);
+  });
+}
+function updateDisponible(i, v) { matieres[i].disponible = parseInt(v) || 0; }
+
 // ---------- CALCUL ----------
 function calculerBesoins() {
   const niveauxActifs = niveaux.filter(n => n.actif && n.nbClasses > 0);
@@ -223,20 +250,25 @@ function calculerBesoins() {
       heuresSupp2nd = heuresReste - heuresSupp1er;
     }
 
+    const disponible = m.disponible || 0;
+    const aRecruter = Math.max(0, enseignantsTotal - disponible);
+
     return { matiere:m.nom, categorie:m.categorie, heuresTotal, heures1er, heures2nd,
-      chargeHoraire, enseignantsBase, heuresReste, enseignantsTotal, heuresSupp1er, heuresSupp2nd };
+      chargeHoraire, enseignantsBase, heuresReste, enseignantsTotal, heuresSupp1er, heuresSupp2nd,
+      disponible, aRecruter };
   });
 
   let enseignantsStandard = 0, enseignantsEpsMemorisation = 0, totalHS1er = 0, totalHS2nd = 0;
+  let aRecruterStandard = 0, aRecruterEps = 0;
   resultatsParMatiere.forEach(r => {
-    if (r.categorie === 'Standard') enseignantsStandard += r.enseignantsTotal;
-    else enseignantsEpsMemorisation += r.enseignantsTotal;
+    if (r.categorie === 'Standard') { enseignantsStandard += r.enseignantsTotal; aRecruterStandard += r.aRecruter; }
+    else { enseignantsEpsMemorisation += r.enseignantsTotal; aRecruterEps += r.aRecruter; }
     totalHS1er += r.heuresSupp1er;
     totalHS2nd += r.heuresSupp2nd;
   });
 
-  const chargeSalarialeStandard = enseignantsStandard * (salaires.standard.brut + salaires.standard.transport) * 9;
-  const chargeSalarialeEps = enseignantsEpsMemorisation * (salaires.epsMemorisation.brut + salaires.epsMemorisation.transport) * 9;
+  const chargeSalarialeStandard = aRecruterStandard * (salaires.standard.brut + salaires.standard.transport) * 9;
+  const chargeSalarialeEps = aRecruterEps * (salaires.epsMemorisation.brut + salaires.epsMemorisation.transport) * 9;
   const chargeHeuresSupp = (totalHS1er * salaires.heuresSupp1er + totalHS2nd * salaires.heuresSupp2nd) * 9;
   const chargeTotal = chargeSalarialeStandard + chargeSalarialeEps + chargeHeuresSupp;
 
@@ -244,6 +276,7 @@ function calculerBesoins() {
     matieres: resultatsParMatiere,
     totaux: { enseignantsStandard, enseignantsEpsMemorisation,
       enseignantsTotal: enseignantsStandard + enseignantsEpsMemorisation,
+      aRecruterStandard, aRecruterEps, aRecruterTotal: aRecruterStandard + aRecruterEps,
       heuresSupp1er: totalHS1er, heuresSupp2nd: totalHS2nd,
       chargeSalarialeStandard, chargeSalarialeEps, chargeHeuresSupp, chargeTotal }
   };
@@ -259,18 +292,18 @@ function afficherResultats() {
   const t = resultats.totaux;
 
   document.getElementById('summaryGrid').innerHTML = `
-    <div class="summary-box"><div class="label">Enseignants total</div>
+    <div class="summary-box"><div class="label">Besoin total (postes)</div>
       <div class="value">${t.enseignantsTotal}</div>
       <div class="label">Standard: ${t.enseignantsStandard} | EPS/Mémo: ${t.enseignantsEpsMemorisation}</div></div>
+    <div class="summary-box"><div class="label">À recruter</div>
+      <div class="value">${t.aRecruterTotal}</div>
+      <div class="label">Standard: ${t.aRecruterStandard} | EPS/Mémo: ${t.aRecruterEps}</div></div>
     <div class="summary-box"><div class="label">Heures supplémentaires</div>
       <div class="value">${t.heuresSupp1er + t.heuresSupp2nd}h/mois</div>
       <div class="label">1er: ${t.heuresSupp1er}h | 2nd: ${t.heuresSupp2nd}h</div></div>
-    <div class="summary-box"><div class="label">Coût annuel total</div>
+    <div class="summary-box"><div class="label">Coût annuel (recrutements)</div>
       <div class="value">${(t.chargeTotal/1000000).toFixed(2)}M</div>
       <div class="label">F CFA (9 mois)</div></div>
-    <div class="summary-box"><div class="label">Coût mensuel moyen</div>
-      <div class="value">${(t.chargeTotal/9/1000000).toFixed(2)}M</div>
-      <div class="label">F CFA/mois</div></div>
   `;
 
   const tbody = document.querySelector('#tableMatieres tbody');
@@ -281,8 +314,9 @@ function afficherResultats() {
       <td>${m.heures1er}h</td>
       <td>${m.heures2nd}h</td>
       <td>${m.chargeHoraire}h</td>
-      <td><strong>${m.enseignantsTotal}</strong></td>
-      <td style="color:${m.heuresReste>0?'#d97706':'#059669'};">${m.heuresReste}h</td>
+      <td>${m.enseignantsTotal}</td>
+      <td>${m.disponible}</td>
+      <td class="${m.aRecruter > 0 ? 'badge-recruit' : 'badge-ok'}">${m.aRecruter}</td>
       <td>${m.heuresSupp1er}h</td>
       <td>${m.heuresSupp2nd}h</td>
     </tr>
@@ -291,23 +325,23 @@ function afficherResultats() {
   const totalHeures = resultats.matieres.reduce((s,m)=>s+m.heuresTotal,0);
   const total1er = resultats.matieres.reduce((s,m)=>s+m.heures1er,0);
   const total2nd = resultats.matieres.reduce((s,m)=>s+m.heures2nd,0);
-  const totalReste = resultats.matieres.reduce((s,m)=>s+m.heuresReste,0);
+  const totalDispo = resultats.matieres.reduce((s,m)=>s+m.disponible,0);
 
   document.querySelector('#tableMatieres tfoot').innerHTML = `
     <tr>
       <td style="text-align:left;">TOTAL</td>
       <td>${totalHeures}h</td><td>${total1er}h</td><td>${total2nd}h</td><td>-</td>
-      <td>${t.enseignantsTotal}</td><td>${totalReste}h</td>
+      <td>${t.enseignantsTotal}</td><td>${totalDispo}</td><td>${t.aRecruterTotal}</td>
       <td>${t.heuresSupp1er}h</td><td>${t.heuresSupp2nd}h</td>
     </tr>
   `;
 
   document.getElementById('chargesDetail').innerHTML = `
     <div class="charge-line" style="background:#eff6ff;">
-      <span>Enseignants standard (${t.enseignantsStandard})</span>
+      <span>Enseignants standard à recruter (${t.aRecruterStandard})</span>
       <strong>${fmt(t.chargeSalarialeStandard)} F CFA</strong></div>
     <div class="charge-line" style="background:#ecfdf5;">
-      <span>Enseignants EPS/Mémorisation (${t.enseignantsEpsMemorisation})</span>
+      <span>Enseignants EPS/Mémorisation à recruter (${t.aRecruterEps})</span>
       <strong>${fmt(t.chargeSalarialeEps)} F CFA</strong></div>
     <div class="charge-line" style="background:#fff7ed;">
       <span>Heures supplémentaires (${t.heuresSupp1er + t.heuresSupp2nd}h/mois)</span>
@@ -337,6 +371,7 @@ function exporterResultats() {
 
 // ---------- INIT ----------
 renderNiveaux();
+renderMatieres();
 </script>
 </body>
 </html>
