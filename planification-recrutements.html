@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outil de Planification des Recrutements - GSC Hînneh</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: linear-gradient(135deg,#eef2ff,#e0f2fe); padding: 24px; color:#1f2937; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.08); padding:24px; margin-bottom:24px; }
+  h1 { font-size:24px; color:#3730a3; }
+  h2 { font-size:18px; color:#1f2937; margin-bottom:16px; }
+  .subtitle { color:#6b7280; font-size:14px; }
+  .row { display:flex; gap:16px; flex-wrap:wrap; margin-top:16px; }
+  .field { flex:1; min-width:200px; }
+  label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:#374151; }
+  select, input[type=text], input[type=number] { width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; }
+  .niveaux-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-top:16px; }
+  .niveau-box { border:2px solid #e5e7eb; border-radius:10px; padding:10px; background:#f9fafb; }
+  .niveau-box.actif { border-color:#818cf8; background:#eef2ff; }
+  .niveau-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; font-weight:600; }
+  .btn { background:#4f46e5; color:#fff; border:none; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .btn:hover { background:#4338ca; }
+  .btn-secondary { background:#059669; }
+  .btn-secondary:hover { background:#047857; }
+  .center { text-align:center; margin:24px 0; }
+  .summary-bar { background:linear-gradient(90deg,#10b981,#0d9488); color:#fff; border-radius:12px; padding:24px; }
+  .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-top:16px; }
+  .summary-box { background:rgba(255,255,255,.18); border-radius:10px; padding:16px; }
+  .summary-box .label { font-size:13px; opacity:.9; }
+  .summary-box .value { font-size:26px; font-weight:700; margin-top:4px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  th { background:#4f46e5; color:#fff; padding:10px; text-align:center; }
+  td { padding:10px; text-align:center; border-bottom:1px solid #f0f0f0; }
+  tr:nth-child(even) td { background:#f9fafb; }
+  tfoot td { background:#e0e7ff; font-weight:700; }
+  .charge-line { display:flex; justify-content:space-between; padding:12px 16px; border-radius:8px; margin-bottom:10px; font-size:14px; }
+  .flex-between { display:flex; justify-content:space-between; align-items:center; }
+  .hidden { display:none; }
+  @media print { body { background:#fff; padding:0; } .btn { display:none; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="card">
+    <h1>📊 Outil de Planification des Recrutements</h1>
+    <p class="subtitle">Réseau GSC Hînneh — COSIM</p>
+    <div class="row">
+      <div class="field">
+        <label>Campus</label>
+        <select id="campus">
+          <option>Biabou</option>
+          <option>Kokrenou</option>
+          <option>Bouaké</option>
+          <option>Korhogo</option>
+          <option>Daloa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Année scolaire</label>
+        <input type="text" id="annee" value="2025-2026">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📚 Configuration des niveaux (nombre de classes)</h2>
+    <div class="niveaux-grid" id="niveauxGrid"></div>
+  </div>
+
+  <div class="center">
+    <button class="btn" onclick="calculerBesoins()">🧮 Calculer les besoins en personnel</button>
+  </div>
+
+  <div id="resultatsZone" class="hidden">
+
+    <div class="card summary-bar">
+      <h2 style="color:#fff;">💰 Résumé financier</h2>
+      <div class="summary-grid" id="summaryGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <h2>👥 Détail par matière</h2>
+        <button class="btn btn-secondary" onclick="exporterResultats()">⬇️ Exporter (JSON)</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="tableMatieres">
+          <thead>
+            <tr>
+              <th>Matière</th><th>Total heures</th><th>1er cycle</th><th>2nd cycle</th>
+              <th>Charge/ens.</th><th>Enseignants</th><th>Heures reste</th><th>HS 1er</th><th>HS 2nd</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💵 Détail des charges annuelles (9 mois)</h2>
+      <div id="chargesDetail"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ---------- DONNÉES ----------
+let niveaux = [
+  { nom:'6ème', nbClasses:0, actif:true },
+  { nom:'5ème', nbClasses:0, actif:true },
+  { nom:'4ème', nbClasses:0, actif:true },
+  { nom:'3ème', nbClasses:0, actif:true },
+  { nom:'2nde A', nbClasses:0, actif:true },
+  { nom:'2nde C', nbClasses:0, actif:true },
+  { nom:'1ère A1', nbClasses:0, actif:false },
+  { nom:'1ère A2', nbClasses:0, actif:true },
+  { nom:'1ère C', nbClasses:0, actif:false },
+  { nom:'1ère D', nbClasses:0, actif:false },
+  { nom:'Tle A1', nbClasses:0, actif:false },
+  { nom:'Tle A2', nbClasses:0, actif:true },
+  { nom:'Tle C', nbClasses:0, actif:false },
+  { nom:'Tle D', nbClasses:0, actif:false }
+];
+
+const cycles = {
+  '1er': ['6ème','5ème','4ème','3ème'],
+  '2nd': ['2nde A','2nde C','1ère A1','1ère A2','1ère C','1ère D','Tle A1','Tle A2','Tle C','Tle D']
+};
+
+const matieres = [
+  { nom:'Français', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
+    vhh:{'6ème':5,'5ème':5,'4ème':5,'3ème':5,'2nde A':4,'2nde C':4,'1ère A1':4,'1ère A2':4,'1ère C':3,'1ère D':3,'Tle A1':5,'Tle A2':5,'Tle C':2,'Tle D':2} },
+  { nom:'Mathématiques', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
+    vhh:{'6ème':4,'5ème':4,'4ème':4,'3ème':4,'2nde A':3,'2nde C':5,'1ère A1':3,'1ère A2':3,'1ère C':5,'1ère D':5,'Tle A1':4,'Tle A2':4,'Tle C':7,'Tle D':6} },
+  { nom:'Anglais', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':3,'5ème':3,'4ème':3,'3ème':3,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':2,'1ère D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
+  { nom:'Espagnol (LV2)', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':0,'5ème':0,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
+  { nom:'Arabe', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
+  { nom:'Histoire-Géographie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':3,'5ème':3,'4ème':3,'3ème':3,'2nde A':3,'2nde C':3,'1ère A1':4,'1ère A2':4,'1ère C':0,'1ère D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} },
+  { nom:'Philosophie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':0,'5ème':0,'4ème':0,'3ème':0,'2nde A':0,'2nde C':0,'1ère A1':3,'1ère A2':3,'1ère C':2,'1ère D':2,'Tle A1':4,'Tle A2':4,'Tle C':2,'Tle D':2} },
+  { nom:'EDHC', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
+  { nom:'Physique-Chimie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':0,'5ème':0,'4ème':2,'3ème':2,'2nde A':0,'2nde C':3,'1ère A1':0,'1ère A2':0,'1ère C':5,'1ère D':4,'Tle A1':0,'Tle A2':0,'Tle C':6,'Tle D':5} },
+  { nom:'SVT', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':0,'2nde C':2,'1ère A1':0,'1ère A2':0,'1ère C':3,'1ère D':4,'Tle A1':0,'Tle A2':0,'Tle C':3,'Tle D':5} },
+  { nom:'EPS', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':2,'1ère D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
+  { nom:'Arts Visuels', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
+  { nom:'TICE', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
+  { nom:'Mémorisation', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
+  { nom:'EFR', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6ème':4,'5ème':4,'4ème':4,'3ème':4,'2nde A':4,'2nde C':4,'1ère A1':4,'1ère A2':4,'1ère C':0,'1ère D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} }
+];
+
+const salaires = {
+  standard: { brut:128250, transport:30000 },
+  epsMemorisation: { brut:118250, transport:30000 },
+  heuresSupp1er: 2000,
+  heuresSupp2nd: 3000
+};
+
+let resultats = null;
+
+// ---------- RENDU NIVEAUX ----------
+function renderNiveaux() {
+  const grid = document.getElementById('niveauxGrid');
+  grid.innerHTML = '';
+  niveaux.forEach((n, i) => {
+    const box = document.createElement('div');
+    box.className = 'niveau-box' + (n.actif ? ' actif' : '');
+    box.innerHTML = `
+      <div class="niveau-head">
+        <span>${n.nom}</span>
+        <input type="checkbox" ${n.actif ? 'checked' : ''} onchange="toggleNiveau(${i})">
+      </div>
+      <input type="number" min="0" value="${n.nbClasses}" ${n.actif ? '' : 'disabled'}
+        onchange="updateClasses(${i}, this.value)" placeholder="Classes">
+    `;
+    grid.appendChild(box);
+  });
+}
+function toggleNiveau(i) { niveaux[i].actif = !niveaux[i].actif; renderNiveaux(); }
+function updateClasses(i, v) { niveaux[i].nbClasses = parseInt(v) || 0; }
+
+// ---------- CALCUL ----------
+function calculerBesoins() {
+  const niveauxActifs = niveaux.filter(n => n.actif && n.nbClasses > 0);
+
+  const resultatsParMatiere = matieres.map(m => {
+    let heuresTotal = 0, heures1er = 0, heures2nd = 0;
+    niveauxActifs.forEach(n => {
+      const h = (m.vhh[n.nom] || 0) * n.nbClasses;
+      heuresTotal += h;
+      if (cycles['1er'].includes(n.nom)) heures1er += h; else heures2nd += h;
+    });
+
+    let chargeHoraire = 18;
+    if (heures1er > 0 && heures2nd === 0) chargeHoraire = m.chargeMin1er;
+    else if (heures1er > 0 && heures2nd > 0) chargeHoraire = m.chargeMin2nd;
+
+    const enseignantsBase = Math.floor(heuresTotal / chargeHoraire);
+    const heuresReste = heuresTotal - (enseignantsBase * chargeHoraire);
+    const enseignantsTotal = heuresReste > 0 ? enseignantsBase + 1 : enseignantsBase;
+
+    let heuresSupp1er = 0, heuresSupp2nd = 0;
+    if (heuresReste > 0 && heuresTotal > 0) {
+      const ratio1er = heures1er / heuresTotal;
+      heuresSupp1er = Math.round(heuresReste * ratio1er);
+      heuresSupp2nd = heuresReste - heuresSupp1er;
+    }
+
+    return { matiere:m.nom, categorie:m.categorie, heuresTotal, heures1er, heures2nd,
+      chargeHoraire, enseignantsBase, heuresReste, enseignantsTotal, heuresSupp1er, heuresSupp2nd };
+  });
+
+  let enseignantsStandard = 0, enseignantsEpsMemorisation = 0, totalHS1er = 0, totalHS2nd = 0;
+  resultatsParMatiere.forEach(r => {
+    if (r.categorie === 'Standard') enseignantsStandard += r.enseignantsTotal;
+    else enseignantsEpsMemorisation += r.enseignantsTotal;
+    totalHS1er += r.heuresSupp1er;
+    totalHS2nd += r.heuresSupp2nd;
+  });
+
+  const chargeSalarialeStandard = enseignantsStandard * (salaires.standard.brut + salaires.standard.transport) * 9;
+  const chargeSalarialeEps = enseignantsEpsMemorisation * (salaires.epsMemorisation.brut + salaires.epsMemorisation.transport) * 9;
+  const chargeHeuresSupp = (totalHS1er * salaires.heuresSupp1er + totalHS2nd * salaires.heuresSupp2nd) * 9;
+  const chargeTotal = chargeSalarialeStandard + chargeSalarialeEps + chargeHeuresSupp;
+
+  resultats = {
+    matieres: resultatsParMatiere,
+    totaux: { enseignantsStandard, enseignantsEpsMemorisation,
+      enseignantsTotal: enseignantsStandard + enseignantsEpsMemorisation,
+      heuresSupp1er: totalHS1er, heuresSupp2nd: totalHS2nd,
+      chargeSalarialeStandard, chargeSalarialeEps, chargeHeuresSupp, chargeTotal }
+  };
+
+  afficherResultats();
+}
+
+// ---------- AFFICHAGE ----------
+function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+
+function afficherResultats() {
+  document.getElementById('resultatsZone').classList.remove('hidden');
+  const t = resultats.totaux;
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-box"><div class="label">Enseignants total</div>
+      <div class="value">${t.enseignantsTotal}</div>
+      <div class="label">Standard: ${t.enseignantsStandard} | EPS/Mémo: ${t.enseignantsEpsMemorisation}</div></div>
+    <div class="summary-box"><div class="label">Heures supplémentaires</div>
+      <div class="value">${t.heuresSupp1er + t.heuresSupp2nd}h/mois</div>
+      <div class="label">1er: ${t.heuresSupp1er}h | 2nd: ${t.heuresSupp2nd}h</div></div>
+    <div class="summary-box"><div class="label">Coût annuel total</div>
+      <div class="value">${(t.chargeTotal/1000000).toFixed(2)}M</div>
+      <div class="label">F CFA (9 mois)</div></div>
+    <div class="summary-box"><div class="label">Coût mensuel moyen</div>
+      <div class="value">${(t.chargeTotal/9/1000000).toFixed(2)}M</div>
+      <div class="label">F CFA/mois</div></div>
+  `;
+
+  const tbody = document.querySelector('#tableMatieres tbody');
+  tbody.innerHTML = resultats.matieres.map(m => `
+    <tr>
+      <td style="text-align:left;font-weight:600;">${m.matiere}</td>
+      <td><strong>${m.heuresTotal}h</strong></td>
+      <td>${m.heures1er}h</td>
+      <td>${m.heures2nd}h</td>
+      <td>${m.chargeHoraire}h</td>
+      <td><strong>${m.enseignantsTotal}</strong></td>
+      <td style="color:${m.heuresReste>0?'#d97706':'#059669'};">${m.heuresReste}h</td>
+      <td>${m.heuresSupp1er}h</td>
+      <td>${m.heuresSupp2nd}h</td>
+    </tr>
+  `).join('');
+
+  const totalHeures = resultats.matieres.reduce((s,m)=>s+m.heuresTotal,0);
+  const total1er = resultats.matieres.reduce((s,m)=>s+m.heures1er,0);
+  const total2nd = resultats.matieres.reduce((s,m)=>s+m.heures2nd,0);
+  const totalReste = resultats.matieres.reduce((s,m)=>s+m.heuresReste,0);
+
+  document.querySelector('#tableMatieres tfoot').innerHTML = `
+    <tr>
+      <td style="text-align:left;">TOTAL</td>
+      <td>${totalHeures}h</td><td>${total1er}h</td><td>${total2nd}h</td><td>-</td>
+      <td>${t.enseignantsTotal}</td><td>${totalReste}h</td>
+      <td>${t.heuresSupp1er}h</td><td>${t.heuresSupp2nd}h</td>
+    </tr>
+  `;
+
+  document.getElementById('chargesDetail').innerHTML = `
+    <div class="charge-line" style="background:#eff6ff;">
+      <span>Enseignants standard (${t.enseignantsStandard})</span>
+      <strong>${fmt(t.chargeSalarialeStandard)} F CFA</strong></div>
+    <div class="charge-line" style="background:#ecfdf5;">
+      <span>Enseignants EPS/Mémorisation (${t.enseignantsEpsMemorisation})</span>
+      <strong>${fmt(t.chargeSalarialeEps)} F CFA</strong></div>
+    <div class="charge-line" style="background:#fff7ed;">
+      <span>Heures supplémentaires (${t.heuresSupp1er + t.heuresSupp2nd}h/mois)</span>
+      <strong>${fmt(t.chargeHeuresSupp)} F CFA</strong></div>
+    <div class="charge-line" style="background:#4f46e5;color:#fff;font-size:16px;">
+      <span><strong>TOTAL ANNUEL (9 mois)</strong></span>
+      <strong>${fmt(t.chargeTotal)} F CFA</strong></div>
+  `;
+}
+
+// ---------- EXPORT ----------
+function exporterResultats() {
+  if (!resultats) return;
+  const data = {
+    campus: document.getElementById('campus').value,
+    annee: document.getElementById('annee').value,
+    niveaux: niveaux.filter(n => n.actif),
+    resultats
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `planification_${data.campus}_${data.annee}.json`;
+  a.click();
+}
+
+// ---------- INIT ----------
+renderNiveaux();
+</script>
+</body>
+</html>
