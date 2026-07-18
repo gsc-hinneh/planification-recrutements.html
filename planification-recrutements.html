@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Outil de Planification des Recrutements - GSC Hînneh</title>
+<title>Outil de Planification des Recrutements - GSC Hinneh</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: linear-gradient(135deg,#eef2ff,#e0f2fe); padding: 24px; color:#1f2937; }
+  body { font-family: Arial, sans-serif; background: #eef2ff; padding: 24px; color:#1f2937; }
   .container { max-width: 1200px; margin: 0 auto; }
   .card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.08); padding:24px; margin-bottom:24px; }
   h1 { font-size:24px; color:#3730a3; }
@@ -20,14 +20,14 @@
   .niveau-box { border:2px solid #e5e7eb; border-radius:10px; padding:10px; background:#f9fafb; }
   .niveau-box.actif { border-color:#818cf8; background:#eef2ff; }
   .niveau-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13px; font-weight:600; }
-  .btn { background:#4f46e5; color:#fff; border:none; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .btn { background:#4f46e5; color:#fff; border:none; padding:12px 28px; border-radius:10px; font-weight:700; font-size:15px; cursor:pointer; }
   .btn:hover { background:#4338ca; }
   .btn-secondary { background:#059669; }
   .btn-secondary:hover { background:#047857; }
   .btn-add { background:#4f46e5; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; }
   .btn-remove { background:#fee2e2; color:#b91c1c; border:none; width:32px; height:32px; border-radius:8px; font-weight:700; cursor:pointer; font-size:16px; }
   .center { text-align:center; margin:24px 0; }
-  .summary-bar { background:linear-gradient(90deg,#10b981,#0d9488); color:#fff; border-radius:12px; padding:24px; }
+  .summary-bar { background:#0d9488; color:#fff; border-radius:12px; padding:24px; }
   .summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-top:16px; }
   .summary-box { background:rgba(255,255,255,.18); border-radius:10px; padding:16px; }
   .summary-box .label { font-size:13px; opacity:.9; }
@@ -44,67 +44,65 @@
   .badge-recruit { color:#d97706; font-weight:700; }
   .badge-surplus { color:#0369a1; font-weight:700; }
   .teacher-row { display:grid; grid-template-columns:2fr 2fr 1fr 40px; gap:10px; align-items:center; margin-bottom:8px; }
-  .teacher-row input, .teacher-row select { margin:0; }
-  @media print { body { background:#fff; padding:0; } .btn, .btn-add, .btn-remove { display:none; } }
 </style>
 </head>
 <body>
 <div class="container">
 
   <div class="card">
-    <h1>📊 Outil de Planification des Recrutements</h1>
-    <p class="subtitle">Réseau GSC Hînneh — COSIM</p>
+    <h1>Outil de Planification des Recrutements</h1>
+    <p class="subtitle">Reseau GSC Hinneh - COSIM</p>
     <div class="row">
       <div class="field">
         <label>Campus</label>
         <select id="campus">
           <option>Biabou</option>
           <option>Kokrenou</option>
-          <option>Bouaké</option>
+          <option>Bouake</option>
           <option>Korhogo</option>
           <option>Daloa</option>
         </select>
       </div>
       <div class="field">
-        <label>Année scolaire</label>
+        <label>Annee scolaire</label>
         <input type="text" id="annee" value="2025-2026">
       </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>📚 Configuration des niveaux (nombre de classes)</h2>
+    <h2>Configuration des niveaux (nombre de classes)</h2>
     <div class="niveaux-grid" id="niveauxGrid"></div>
   </div>
 
   <div class="card">
-    <h2>👥 Affectation des enseignants disponibles</h2>
-    <p class="subtitle" style="margin-bottom:12px;">Listez les enseignants déjà en poste, leur matière et le nombre d'heures/semaine qu'ils peuvent assurer. Le total sera automatiquement déduit du besoin par matière.</p>
+    <h2>Affectation des enseignants disponibles</h2>
+    <p class="subtitle" style="margin-bottom:12px;">Listez les enseignants deja en poste, leur matiere et le nombre d heures par semaine qu ils peuvent assurer.</p>
     <div id="teachersGrid"></div>
     <button class="btn-add" onclick="ajouterEnseignant()">+ Ajouter un enseignant</button>
   </div>
 
   <div class="center">
-    <button class="btn" onclick="calculerBesoins()">🧮 Calculer les postes vacants</button>
+    <button class="btn" onclick="calculerBesoins()">Calculer les postes vacants</button>
   </div>
 
   <div id="resultatsZone" class="hidden">
 
     <div class="card summary-bar">
-      <h2 style="color:#fff;">💰 Résumé financier</h2>
+      <h2 style="color:#fff;">Resume financier</h2>
       <div class="summary-grid" id="summaryGrid"></div>
     </div>
 
     <div class="card">
       <div class="flex-between">
-        <h2>👥 Détail par matière</h2>
-        <button class="btn btn-secondary" onclick="exporterResultats()">⬇️ Exporter (JSON)</button>
+        <h2>Detail par matiere</h2>
+        <button class="btn btn-secondary" onclick="exporterResultats()">Exporter (JSON)</button>
       </div>
       <div style="overflow-x:auto;">
         <table id="tableMatieres">
           <thead>
             <tr>
-              <th>Matière</th><th>Besoin (h)</th><th>Affecté (h)</th><th>Écart (h)</th>
+              <th>Matiere</th><th>Besoin (h)</th><th>Affecte (h)</th><th>Ecart (h)</th>
               <th>Charge/ens.</th><th>Postes vacants</th><th>HS 1er</th><th>HS 2nd</th>
             </tr>
           </thead>
@@ -115,7 +113,7 @@
     </div>
 
     <div class="card">
-      <h2>💵 Détail des charges annuelles (9 mois) — postes vacants uniquement</h2>
+      <h2>Detail des charges annuelles (9 mois)</h2>
       <div id="chargesDetail"></div>
     </div>
 
@@ -124,55 +122,264 @@
 </div>
 
 <script>
-// ---------- DONNÉES ----------
-let niveaux = [
-  { nom:'6ème', nbClasses:0, actif:true },
-  { nom:'5ème', nbClasses:0, actif:true },
-  { nom:'4ème', nbClasses:0, actif:true },
-  { nom:'3ème', nbClasses:0, actif:true },
+var niveaux = [
+  { nom:'6eme', nbClasses:0, actif:true },
+  { nom:'5eme', nbClasses:0, actif:true },
+  { nom:'4eme', nbClasses:0, actif:true },
+  { nom:'3eme', nbClasses:0, actif:true },
   { nom:'2nde A', nbClasses:0, actif:true },
   { nom:'2nde C', nbClasses:0, actif:true },
-  { nom:'1ère A1', nbClasses:0, actif:false },
-  { nom:'1ère A2', nbClasses:0, actif:true },
-  { nom:'1ère C', nbClasses:0, actif:false },
-  { nom:'1ère D', nbClasses:0, actif:false },
+  { nom:'1ere A1', nbClasses:0, actif:false },
+  { nom:'1ere A2', nbClasses:0, actif:true },
+  { nom:'1ere C', nbClasses:0, actif:false },
+  { nom:'1ere D', nbClasses:0, actif:false },
   { nom:'Tle A1', nbClasses:0, actif:false },
   { nom:'Tle A2', nbClasses:0, actif:true },
   { nom:'Tle C', nbClasses:0, actif:false },
   { nom:'Tle D', nbClasses:0, actif:false }
 ];
 
-const cycles = {
-  '1er': ['6ème','5ème','4ème','3ème'],
-  '2nd': ['2nde A','2nde C','1ère A1','1ère A2','1ère C','1ère D','Tle A1','Tle A2','Tle C','Tle D']
+var cycles = {
+  premier: ['6eme','5eme','4eme','3eme'],
+  second: ['2nde A','2nde C','1ere A1','1ere A2','1ere C','1ere D','Tle A1','Tle A2','Tle C','Tle D']
 };
 
-const matieres = [
-  { nom:'Français', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
-    vhh:{'6ème':5,'5ème':5,'4ème':5,'3ème':5,'2nde A':4,'2nde C':4,'1ère A1':4,'1ère A2':4,'1ère C':3,'1ère D':3,'Tle A1':5,'Tle A2':5,'Tle C':2,'Tle D':2} },
-  { nom:'Mathématiques', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
-    vhh:{'6ème':4,'5ème':4,'4ème':4,'3ème':4,'2nde A':3,'2nde C':5,'1ère A1':3,'1ère A2':3,'1ère C':5,'1ère D':5,'Tle A1':4,'Tle A2':4,'Tle C':7,'Tle D':6} },
+var matieres = [
+  { nom:'Francais', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
+    vhh:{'6eme':5,'5eme':5,'4eme':5,'3eme':5,'2nde A':4,'2nde C':4,'1ere A1':4,'1ere A2':4,'1ere C':3,'1ere D':3,'Tle A1':5,'Tle A2':5,'Tle C':2,'Tle D':2} },
+  { nom:'Mathematiques', categorie:'Standard', chargeMin1er:20, chargeMin2nd:18,
+    vhh:{'6eme':4,'5eme':4,'4eme':4,'3eme':4,'2nde A':3,'2nde C':5,'1ere A1':3,'1ere A2':3,'1ere C':5,'1ere D':5,'Tle A1':4,'Tle A2':4,'Tle C':7,'Tle D':6} },
   { nom:'Anglais', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':3,'5ème':3,'4ème':3,'3ème':3,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':2,'1ère D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
+    vhh:{'6eme':3,'5eme':3,'4eme':3,'3eme':3,'2nde A':2,'2nde C':2,'1ere A1':2,'1ere A2':2,'1ere C':2,'1ere D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
   { nom:'Espagnol (LV2)', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':0,'5ème':0,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
+    vhh:{'6eme':0,'5eme':0,'4eme':2,'3eme':2,'2nde A':2,'2nde C':2,'1ere A1':2,'1ere A2':2,'1ere C':0,'1ere D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
   { nom:'Arabe', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':0,'1ère D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
-  { nom:'Histoire-Géographie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':3,'5ème':3,'4ème':3,'3ème':3,'2nde A':3,'2nde C':3,'1ère A1':4,'1ère A2':4,'1ère C':0,'1ère D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} },
+    vhh:{'6eme':2,'5eme':2,'4eme':2,'3eme':2,'2nde A':2,'2nde C':2,'1ere A1':2,'1ere A2':2,'1ere C':0,'1ere D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
+  { nom:'Histoire-Geographie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6eme':3,'5eme':3,'4eme':3,'3eme':3,'2nde A':3,'2nde C':3,'1ere A1':4,'1ere A2':4,'1ere C':0,'1ere D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} },
   { nom:'Philosophie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':0,'5ème':0,'4ème':0,'3ème':0,'2nde A':0,'2nde C':0,'1ère A1':3,'1ère A2':3,'1ère C':2,'1ère D':2,'Tle A1':4,'Tle A2':4,'Tle C':2,'Tle D':2} },
+    vhh:{'6eme':0,'5eme':0,'4eme':0,'3eme':0,'2nde A':0,'2nde C':0,'1ere A1':3,'1ere A2':3,'1ere C':2,'1ere D':2,'Tle A1':4,'Tle A2':4,'Tle C':2,'Tle D':2} },
   { nom:'EDHC', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
+    vhh:{'6eme':1,'5eme':1,'4eme':1,'3eme':1,'2nde A':1,'2nde C':1,'1ere A1':0,'1ere A2':0,'1ere C':0,'1ere D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
   { nom:'Physique-Chimie', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':0,'5ème':0,'4ème':2,'3ème':2,'2nde A':0,'2nde C':3,'1ère A1':0,'1ère A2':0,'1ère C':5,'1ère D':4,'Tle A1':0,'Tle A2':0,'Tle C':6,'Tle D':5} },
+    vhh:{'6eme':0,'5eme':0,'4eme':2,'3eme':2,'2nde A':0,'2nde C':3,'1ere A1':0,'1ere A2':0,'1ere C':5,'1ere D':4,'Tle A1':0,'Tle A2':0,'Tle C':6,'Tle D':5} },
   { nom:'SVT', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':0,'2nde C':2,'1ère A1':0,'1ère A2':0,'1ère C':3,'1ère D':4,'Tle A1':0,'Tle A2':0,'Tle C':3,'Tle D':5} },
-  { nom:'EPS', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère A1':2,'1ère A2':2,'1ère C':2,'1ère D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
+    vhh:{'6eme':2,'5eme':2,'4eme':2,'3eme':2,'2nde A':0,'2nde C':2,'1ere A1':0,'1ere A2':0,'1ere C':3,'1ere D':4,'Tle A1':0,'Tle A2':0,'Tle C':3,'Tle D':5} },
+  { nom:'EPS', categorie:'EPS/Memorisation', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6eme':2,'5eme':2,'4eme':2,'3eme':2,'2nde A':2,'2nde C':2,'1ere A1':2,'1ere A2':2,'1ere C':2,'1ere D':2,'Tle A1':2,'Tle A2':2,'Tle C':2,'Tle D':2} },
   { nom:'Arts Visuels', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
+    vhh:{'6eme':1,'5eme':1,'4eme':1,'3eme':1,'2nde A':1,'2nde C':1,'1ere A1':0,'1ere A2':0,'1ere C':0,'1ere D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
   { nom:'TICE', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':1,'5ème':1,'4ème':1,'3ème':1,'2nde A':1,'2nde C':1,'1ère A1':0,'1ère A2':0,'1ère C':0,'1ère D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
-  { nom:'Mémorisation', categorie:'EPS/Mémorisation', chargeMin1er:18, chargeMin2nd:18,
-    vhh:{'6ème':2,'5ème':2,'4ème':2,'3ème':2,'2nde A':2,'2nde C':2,'1ère
+    vhh:{'6eme':1,'5eme':1,'4eme':1,'3eme':1,'2nde A':1,'2nde C':1,'1ere A1':0,'1ere A2':0,'1ere C':0,'1ere D':0,'Tle A1':0,'Tle A2':0,'Tle C':0,'Tle D':0} },
+  { nom:'Memorisation', categorie:'EPS/Memorisation', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6eme':2,'5eme':2,'4eme':2,'3eme':2,'2nde A':2,'2nde C':2,'1ere A1':2,'1ere A2':2,'1ere C':0,'1ere D':0,'Tle A1':2,'Tle A2':2,'Tle C':0,'Tle D':0} },
+  { nom:'EFR', categorie:'Standard', chargeMin1er:18, chargeMin2nd:18,
+    vhh:{'6eme':4,'5eme':4,'4eme':4,'3eme':4,'2nde A':4,'2nde C':4,'1ere A1':4,'1ere A2':4,'1ere C':0,'1ere D':0,'Tle A1':4,'Tle A2':4,'Tle C':0,'Tle D':0} }
+];
+
+var salaires = {
+  standard: { brut:128250, transport:30000 },
+  epsMemorisation: { brut:118250, transport:30000 },
+  heuresSupp1er: 2000,
+  heuresSupp2nd: 3000
+};
+
+var resultats = null;
+var enseignants = [];
+var teacherIdCounter = 0;
+
+function renderNiveaux() {
+  var grid = document.getElementById('niveauxGrid');
+  grid.innerHTML = '';
+  for (var i = 0; i < niveaux.length; i++) {
+    var n = niveaux[i];
+    var box = document.createElement('div');
+    box.className = 'niveau-box' + (n.actif ? ' actif' : '');
+    box.innerHTML = '<div class="niveau-head"><span>' + n.nom + '</span>' +
+      '<input type="checkbox" ' + (n.actif ? 'checked' : '') + ' onchange="toggleNiveau(' + i + ')"></div>' +
+      '<input type="number" min="0" value="' + n.nbClasses + '" ' + (n.actif ? '' : 'disabled') +
+      ' onchange="updateClasses(' + i + ', this.value)" placeholder="Classes">';
+    grid.appendChild(box);
+  }
+}
+function toggleNiveau(i) { niveaux[i].actif = !niveaux[i].actif; renderNiveaux(); }
+function updateClasses(i, v) { niveaux[i].nbClasses = parseInt(v) || 0; }
+
+function ajouterEnseignant() {
+  enseignants.push({ id: teacherIdCounter++, nom:'', matiere: matieres[0].nom, heures:0 });
+  renderTeachers();
+}
+function retirerEnseignant(id) {
+  var out = [];
+  for (var i = 0; i < enseignants.length; i++) { if (enseignants[i].id !== id) out.push(enseignants[i]); }
+  enseignants = out;
+  renderTeachers();
+}
+function updateTeacherNom(id, v) { for (var i=0;i<enseignants.length;i++){ if(enseignants[i].id===id) enseignants[i].nom=v; } }
+function updateTeacherMatiere(id, v) { for (var i=0;i<enseignants.length;i++){ if(enseignants[i].id===id) enseignants[i].matiere=v; } }
+function updateTeacherHeures(id, v) { for (var i=0;i<enseignants.length;i++){ if(enseignants[i].id===id) enseignants[i].heures=parseInt(v)||0; } }
+
+function renderTeachers() {
+  var grid = document.getElementById('teachersGrid');
+  if (enseignants.length === 0) {
+    grid.innerHTML = '<p class="subtitle">Aucun enseignant ajoute. Cliquez sur le bouton ci-dessous pour commencer.</p>';
+    return;
+  }
+  var html = '<div class="teacher-row" style="font-size:12px;font-weight:600;color:#6b7280;"><span>Nom</span><span>Matiere</span><span>Heures/sem.</span><span></span></div>';
+  for (var i = 0; i < enseignants.length; i++) {
+    var e = enseignants[i];
+    var options = '';
+    for (var j = 0; j < matieres.length; j++) {
+      var sel = matieres[j].nom === e.matiere ? 'selected' : '';
+      options += '<option value="' + matieres[j].nom + '" ' + sel + '>' + matieres[j].nom + '</option>';
+    }
+    html += '<div class="teacher-row">' +
+      '<input type="text" value="' + e.nom + '" placeholder="Nom et prenoms" onchange="updateTeacherNom(' + e.id + ', this.value)">' +
+      '<select onchange="updateTeacherMatiere(' + e.id + ', this.value)">' + options + '</select>' +
+      '<input type="number" min="0" value="' + e.heures + '" onchange="updateTeacherHeures(' + e.id + ', this.value)">' +
+      '<button class="btn-remove" onclick="retirerEnseignant(' + e.id + ')">X</button></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function calculerBesoins() {
+  var niveauxActifs = [];
+  for (var i = 0; i < niveaux.length; i++) { if (niveaux[i].actif && niveaux[i].nbClasses > 0) niveauxActifs.push(niveaux[i]); }
+
+  var heuresAffecteesParMatiere = {};
+  for (var i = 0; i < enseignants.length; i++) {
+    var e = enseignants[i];
+    heuresAffecteesParMatiere[e.matiere] = (heuresAffecteesParMatiere[e.matiere] || 0) + e.heures;
+  }
+
+  var resultatsParMatiere = [];
+  for (var m = 0; m < matieres.length; m++) {
+    var mat = matieres[m];
+    var heuresTotal = 0, heures1er = 0, heures2nd = 0;
+    for (var n = 0; n < niveauxActifs.length; n++) {
+      var niv = niveauxActifs[n];
+      var h = (mat.vhh[niv.nom] || 0) * niv.nbClasses;
+      heuresTotal += h;
+      if (cycles.premier.indexOf(niv.nom) !== -1) heures1er += h; else heures2nd += h;
+    }
+
+    var chargeHoraire = 18;
+    if (heures1er > 0 && heures2nd === 0) chargeHoraire = mat.chargeMin1er;
+    else if (heures1er > 0 && heures2nd > 0) chargeHoraire = mat.chargeMin2nd;
+
+    var heuresAffectees = heuresAffecteesParMatiere[mat.nom] || 0;
+    var ecart = heuresTotal - heuresAffectees;
+    var heuresRestantes = Math.max(0, ecart);
+    var surplus = Math.max(0, -ecart);
+
+    var postesBase = Math.floor(heuresRestantes / chargeHoraire);
+    var heuresReste = heuresRestantes - (postesBase * chargeHoraire);
+    var postesVacants = heuresReste > 0 ? postesBase + 1 : postesBase;
+
+    var heuresSupp1er = 0, heuresSupp2nd = 0;
+    if (heuresReste > 0 && heuresTotal > 0) {
+      var ratio1er = heures1er / heuresTotal;
+      heuresSupp1er = Math.round(heuresReste * ratio1er);
+      heuresSupp2nd = heuresReste - heuresSupp1er;
+    }
+
+    resultatsParMatiere.push({ matiere:mat.nom, categorie:mat.categorie, heuresTotal:heuresTotal, heures1er:heures1er, heures2nd:heures2nd,
+      chargeHoraire:chargeHoraire, heuresAffectees:heuresAffectees, ecart:ecart, surplus:surplus, postesVacants:postesVacants,
+      heuresSupp1er:heuresSupp1er, heuresSupp2nd:heuresSupp2nd });
+  }
+
+  var vacantsStandard = 0, vacantsEps = 0, totalHS1er = 0, totalHS2nd = 0;
+  for (var r = 0; r < resultatsParMatiere.length; r++) {
+    var res = resultatsParMatiere[r];
+    if (res.categorie === 'Standard') vacantsStandard += res.postesVacants; else vacantsEps += res.postesVacants;
+    totalHS1er += res.heuresSupp1er;
+    totalHS2nd += res.heuresSupp2nd;
+  }
+
+  var chargeSalarialeStandard = vacantsStandard * (salaires.standard.brut + salaires.standard.transport) * 9;
+  var chargeSalarialeEps = vacantsEps * (salaires.epsMemorisation.brut + salaires.epsMemorisation.transport) * 9;
+  var chargeHeuresSupp = (totalHS1er * salaires.heuresSupp1er + totalHS2nd * salaires.heuresSupp2nd) * 9;
+  var chargeTotal = chargeSalarialeStandard + chargeSalarialeEps + chargeHeuresSupp;
+
+  resultats = {
+    matieres: resultatsParMatiere,
+    totaux: { vacantsStandard:vacantsStandard, vacantsEps:vacantsEps, vacantsTotal: vacantsStandard + vacantsEps,
+      heuresSupp1er: totalHS1er, heuresSupp2nd: totalHS2nd,
+      chargeSalarialeStandard:chargeSalarialeStandard, chargeSalarialeEps:chargeSalarialeEps, chargeHeuresSupp:chargeHeuresSupp, chargeTotal:chargeTotal }
+  };
+
+  afficherResultats();
+}
+
+function fmt(n) { return Math.round(n).toLocaleString('fr-FR'); }
+
+function afficherResultats() {
+  document.getElementById('resultatsZone').classList.remove('hidden');
+  var t = resultats.totaux;
+
+  var totalBesoin = 0, totalAffecte = 0, totalEcart = 0;
+  for (var i = 0; i < resultats.matieres.length; i++) {
+    var m = resultats.matieres[i];
+    totalBesoin += m.heuresTotal;
+    totalAffecte += m.heuresAffectees;
+    totalEcart += Math.max(0, m.ecart);
+  }
+
+  document.getElementById('summaryGrid').innerHTML =
+    '<div class="summary-box"><div class="label">Besoin total</div><div class="value">' + totalBesoin + 'h</div><div class="label">toutes matieres / semaine</div></div>' +
+    '<div class="summary-box"><div class="label">Deja affecte</div><div class="value">' + totalAffecte + 'h</div><div class="label">' + enseignants.length + ' enseignant(s) liste(s)</div></div>' +
+    '<div class="summary-box"><div class="label">Ecart a combler</div><div class="value">' + totalEcart + 'h</div><div class="label">' + t.vacantsTotal + ' postes vacants</div></div>' +
+    '<div class="summary-box"><div class="label">Cout annuel</div><div class="value">' + (t.chargeTotal/1000000).toFixed(2) + 'M</div><div class="label">F CFA (9 mois)</div></div>';
+
+  var tbody = document.querySelector('#tableMatieres tbody');
+  var rows = '';
+  for (var i = 0; i < resultats.matieres.length; i++) {
+    var m = resultats.matieres[i];
+    var ecartLabel;
+    if (m.ecart > 0) ecartLabel = '<span class="badge-recruit">+' + m.ecart + 'h</span>';
+    else if (m.surplus > 0) ecartLabel = '<span class="badge-surplus">-' + m.surplus + 'h</span>';
+    else ecartLabel = '<span class="badge-ok">0h</span>';
+    rows += '<tr><td style="text-align:left;font-weight:600;">' + m.matiere + '</td>' +
+      '<td><strong>' + m.heuresTotal + 'h</strong></td>' +
+      '<td>' + m.heuresAffectees + 'h</td>' +
+      '<td>' + ecartLabel + '</td>' +
+      '<td>' + m.chargeHoraire + 'h</td>' +
+      '<td class="' + (m.postesVacants > 0 ? 'badge-recruit' : 'badge-ok') + '">' + m.postesVacants + '</td>' +
+      '<td>' + m.heuresSupp1er + 'h</td>' +
+      '<td>' + m.heuresSupp2nd + 'h</td></tr>';
+  }
+  tbody.innerHTML = rows;
+
+  document.querySelector('#tableMatieres tfoot').innerHTML =
+    '<tr><td style="text-align:left;">TOTAL</td><td>' + totalBesoin + 'h</td><td>' + totalAffecte + 'h</td><td>' + totalEcart + 'h</td><td>-</td>' +
+    '<td>' + t.vacantsTotal + '</td><td>' + t.heuresSupp1er + 'h</td><td>' + t.heuresSupp2nd + 'h</td></tr>';
+
+  document.getElementById('chargesDetail').innerHTML =
+    '<div class="charge-line" style="background:#eff6ff;"><span>Postes vacants standard (' + t.vacantsStandard + ')</span><strong>' + fmt(t.chargeSalarialeStandard) + ' F CFA</strong></div>' +
+    '<div class="charge-line" style="background:#ecfdf5;"><span>Postes vacants EPS/Memorisation (' + t.vacantsEps + ')</span><strong>' + fmt(t.chargeSalarialeEps) + ' F CFA</strong></div>' +
+    '<div class="charge-line" style="background:#fff7ed;"><span>Heures supplementaires (' + (t.heuresSupp1er + t.heuresSupp2nd) + 'h/mois)</span><strong>' + fmt(t.chargeHeuresSupp) + ' F CFA</strong></div>' +
+    '<div class="charge-line" style="background:#4f46e5;color:#fff;font-size:16px;"><span><strong>TOTAL ANNUEL (9 mois)</strong></span><strong>' + fmt(t.chargeTotal) + ' F CFA</strong></div>';
+}
+
+function exporterResultats() {
+  if (!resultats) return;
+  var data = {
+    campus: document.getElementById('campus').value,
+    annee: document.getElementById('annee').value,
+    niveaux: niveaux.filter(function(n){ return n.actif; }),
+    enseignantsAffectes: enseignants,
+    resultats: resultats
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'planification_' + data.campus + '_' + data.annee + '.json';
+  a.click();
+}
+
+renderNiveaux();
+renderTeachers();
+</script>
+</body>
+</html>
